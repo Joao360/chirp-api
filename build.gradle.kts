@@ -1,9 +1,9 @@
 plugins {
-	kotlin("jvm") version "2.2.20"
-	kotlin("plugin.spring") version "2.2.20"
-	id("org.springframework.boot") version "4.0.0-SNAPSHOT"
-	id("io.spring.dependency-management") version "1.1.7"
-	kotlin("plugin.jpa") version "2.2.20"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+    alias(libs.plugins.kotlin.jpa)
 }
 
 group = "com.joaograca"
