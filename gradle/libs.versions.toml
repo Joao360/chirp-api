@@ -40,6 +40,7 @@ jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib" }
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
+kotlin-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
 
 # Database
 postgresql = { module = "org.postgresql:postgresql" }
@@ -58,6 +59,11 @@ spring-rabbit-test = { module = "org.springframework.amqp:spring-rabbit-test" }
 spring-restdocs-mockmvc = { module = "org.springframework.restdocs:spring-restdocs-mockmvc" }
 spring-security-test = { module = "org.springframework.security:spring-security-test" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+# Plugins
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spring-dependency-management-plugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "spring-dependency-management" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
