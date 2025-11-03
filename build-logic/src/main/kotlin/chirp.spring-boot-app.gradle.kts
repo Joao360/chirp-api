@@ -1,5 +1,6 @@
 plugins {
     id("chirp.spring-boot-service")
+    id("org.springframework.boot")
     kotlin("plugin.spring")
 }
 
