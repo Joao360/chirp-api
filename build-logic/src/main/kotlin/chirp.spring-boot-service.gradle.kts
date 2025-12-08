@@ -19,5 +19,6 @@ dependencies {
 
     testImplementation(libraries.findLibrary("spring-boot-starter-test").get())
     testImplementation(libraries.findLibrary("kotlin-test-junit5").get())
+    testImplementation(libraries.findLibrary("mockk").get())
     testRuntimeOnly(libraries.findLibrary("junit-platform-launcher").get())
 }
