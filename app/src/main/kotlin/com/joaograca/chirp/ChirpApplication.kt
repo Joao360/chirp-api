@@ -13,19 +13,3 @@ class ChirpApplication
 fun main(args: Array<String>) {
 	runApplication<ChirpApplication>(*args)
 }
-
-@Component
-class Demo(
-	private val userRepository: UserRepository
-) {
-	@PostConstruct
-	fun init() {
-//		userRepository.save(
-//			UserEntity(
-//				email = "test@test.com",
-//				username = "testuser",
-//				hashedPassword = "hashed_password"
-//			)
-//		)
-	}
-}
