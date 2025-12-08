@@ -1,4 +1,4 @@
-package com.joaograca.user.domain.model
+package com.joaograca.chirp.domain.model
 
 data class AuthenticatedUser(
     val user: User,

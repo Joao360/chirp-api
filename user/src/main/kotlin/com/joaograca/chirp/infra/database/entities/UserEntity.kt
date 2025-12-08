@@ -1,6 +1,6 @@
-package com.joaograca.user.infra.database.entities
+package com.joaograca.chirp.infra.database.entities
 
-import com.joaograca.user.domain.model.UserId
+import com.joaograca.chirp.domain.model.UserId
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
