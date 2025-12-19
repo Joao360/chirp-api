@@ -1,7 +1,10 @@
 package com.joaograca.chirp.api.controllers
 
+import com.joaograca.chirp.api.dto.AuthenticatedUserDto
+import com.joaograca.chirp.api.dto.LoginRequest
 import com.joaograca.chirp.api.dto.RegisterRequest
 import com.joaograca.chirp.api.dto.UserDto
+import com.joaograca.chirp.api.mappers.toAuthenticatedUserDto
 import com.joaograca.chirp.api.mappers.toUserDto
 import com.joaograca.chirp.service.auth.AuthService
 import jakarta.validation.Valid
@@ -24,5 +27,15 @@ class AuthController(
             username = body.username,
             password = body.password
         ).toUserDto()
+    }
+
+    @PostMapping("/login")
+    fun login(
+        @RequestBody body: LoginRequest,
+    ): AuthenticatedUserDto {
+        return authService.login(
+            email = body.email,
+            password = body.password
+        ).toAuthenticatedUserDto()
     }
 }
