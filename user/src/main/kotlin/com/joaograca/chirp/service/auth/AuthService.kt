@@ -1,6 +1,7 @@
 package com.joaograca.chirp.service.auth
 
 import com.joaograca.chirp.domain.exception.InvalidCredentialsException
+import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.UserAlreadyExistsException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
 import com.joaograca.chirp.domain.model.AuthenticatedUser
@@ -12,6 +13,8 @@ import com.joaograca.chirp.infra.database.mappers.toUser
 import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
 import com.joaograca.chirp.infra.security.PasswordEncoder
+import jakarta.transaction.Transactional
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.security.MessageDigest
 import java.time.Instant
@@ -65,6 +68,34 @@ class AuthService(
                 refreshToken = refreshToken
             )
         } ?: throw UserNotFoundException()
+    }
+
+    @Transactional
+    fun refresh(refreshToken: String): AuthenticatedUser {
+        if (!jwtService.validateRefreshToken(refreshToken)) {
+            throw InvalidTokenException("Invalid refresh token")
+        }
+
+        val userId = jwtService.getUserIdFromToken(refreshToken)
+        val user = userRepository.findByIdOrNull(userId)
+            ?: throw UserNotFoundException()
+
+        val hashedToken = hashToken(refreshToken)
+        refreshTokenRepository.findByUserIdAndHashedToken(userId, hashedToken)
+            ?: throw InvalidTokenException("Invalid refresh token")
+
+        refreshTokenRepository.deleteByUserIdAndHashedToken(userId, hashedToken)
+
+        val newAccessToken = jwtService.generateAccessToken(userId)
+        val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+        storeRefreshToken(userId, newRefreshToken)
+
+        return AuthenticatedUser(
+            user = user.toUser(),
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken
+        )
     }
 
     private fun storeRefreshToken(userId: UserId, refreshToken: String) {

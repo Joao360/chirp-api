@@ -7,7 +7,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.util.Date
+import java.util.*
 import kotlin.io.encoding.Base64
 
 @Service
@@ -49,7 +49,7 @@ class JwtService(
         return tokenType == "refresh"
     }
 
-    fun getUserIdFromToken(token: String): UserId? {
+    fun getUserIdFromToken(token: String): UserId {
         val claims = parseAllClaims(token) ?: throw InvalidTokenException(
             message = "The attached JWT token is invalid"
         )
