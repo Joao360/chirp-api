@@ -1,9 +1,6 @@
 package com.joaograca.chirp.api.controllers
 
-import com.joaograca.chirp.api.dto.AuthenticatedUserDto
-import com.joaograca.chirp.api.dto.LoginRequest
-import com.joaograca.chirp.api.dto.RegisterRequest
-import com.joaograca.chirp.api.dto.UserDto
+import com.joaograca.chirp.api.dto.*
 import com.joaograca.chirp.api.mappers.toAuthenticatedUserDto
 import com.joaograca.chirp.api.mappers.toUserDto
 import com.joaograca.chirp.service.auth.AuthService
@@ -37,5 +34,13 @@ class AuthController(
             email = body.email,
             password = body.password
         ).toAuthenticatedUserDto()
+    }
+
+    @PostMapping("/refresh")
+    fun refresh(
+        @RequestBody body: RefreshRequest
+    ): AuthenticatedUserDto {
+        return authService.refresh(body.refreshToken)
+            .toAuthenticatedUserDto()
     }
 }
