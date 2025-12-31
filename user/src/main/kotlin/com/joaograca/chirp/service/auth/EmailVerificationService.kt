@@ -25,7 +25,7 @@ class EmailVerificationService(
     fun createVerificationToken(email: String): EmailVerificationToken {
         val userEntity = userRepository.findByEmail(email)
             ?: throw UserNotFoundException()
-        val existingTokens = emailVerificationTokenRepository.findByUserIdAndUsedAtIsNull(
+        val existingTokens = emailVerificationTokenRepository.findByUserAndUsedAtIsNull(
             user = userEntity
         )
 

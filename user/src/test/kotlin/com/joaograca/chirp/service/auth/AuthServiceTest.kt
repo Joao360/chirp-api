@@ -20,7 +20,14 @@ class AuthServiceTest {
     private val passwordEncoder = mockk<PasswordEncoder>()
     private val jwtService = mockk<JwtService>()
     private val refreshTokenRepository = mockk<RefreshTokenRepository>()
-    private val authService = AuthService(userRepository, passwordEncoder, jwtService, refreshTokenRepository)
+    private val emailVerificationService = mockk<EmailVerificationService>(relaxed = true)
+    private val authService = AuthService(
+        userRepository = userRepository,
+        passwordEncoder = passwordEncoder,
+        jwtService = jwtService,
+        refreshTokenRepository = refreshTokenRepository,
+        emailVerificationService = emailVerificationService
+    )
 
     @Test
     fun `register should successfully create a new user with valid credentials`() {
@@ -40,9 +47,9 @@ class AuthServiceTest {
         )
         val expectedUser = User(id = userId, email = email, username = username, hasEmailVerified = false)
 
-        every { userRepository.findByEmailOrUsername(email, username) } returns null
+        every { userRepository.findByEmailOrUsername(email, username) } returns emptyList()
         every { passwordEncoder.encode(password) } returns hashedPassword
-        every { userRepository.save(any()) } returns userEntity
+        every { userRepository.saveAndFlush(any()) } returns userEntity
 
         // Act
         val result = authService.register(email, username, password)
@@ -54,7 +61,7 @@ class AuthServiceTest {
         assertEquals(expectedUser.hasEmailVerified, result.hasEmailVerified)
         verify { userRepository.findByEmailOrUsername(email, username) }
         verify { passwordEncoder.encode(password) }
-        verify { userRepository.save(any()) }
+        verify { userRepository.saveAndFlush(any()) }
     }
 
     @Test
@@ -73,7 +80,7 @@ class AuthServiceTest {
             hasVerifiedEmail = false
         )
 
-        every { userRepository.findByEmailOrUsername(email, username) } returns existingUserEntity
+        every { userRepository.findByEmailOrUsername(email, username) } returns listOf(existingUserEntity)
 
         // Act & Assert
         assertThrows<UserAlreadyExistsException> {
@@ -82,7 +89,7 @@ class AuthServiceTest {
 
         verify { userRepository.findByEmailOrUsername(email, username) }
         verify(exactly = 0) { passwordEncoder.encode(any()) }
-        verify(exactly = 0) { userRepository.save(any()) }
+        verify(exactly = 0) { userRepository.saveAndFlush(any()) }
     }
 
     @Test
@@ -101,7 +108,7 @@ class AuthServiceTest {
             hasVerifiedEmail = false
         )
 
-        every { userRepository.findByEmailOrUsername(email, username) } returns existingUserEntity
+        every { userRepository.findByEmailOrUsername(email, username) } returns listOf(existingUserEntity)
 
         // Act & Assert
         assertThrows<UserAlreadyExistsException> {
@@ -110,7 +117,7 @@ class AuthServiceTest {
 
         verify { userRepository.findByEmailOrUsername(email, username) }
         verify(exactly = 0) { passwordEncoder.encode(any()) }
-        verify(exactly = 0) { userRepository.save(any()) }
+        verify(exactly = 0) { userRepository.saveAndFlush(any()) }
     }
 
     @Test
@@ -134,9 +141,9 @@ class AuthServiceTest {
         )
         val expectedUser = User(id = userId, email = trimmedEmail, username = trimmedUsername, hasEmailVerified = false)
 
-        every { userRepository.findByEmailOrUsername(trimmedEmail, trimmedUsername) } returns null
+        every { userRepository.findByEmailOrUsername(trimmedEmail, trimmedUsername) } returns emptyList()
         every { passwordEncoder.encode(password) } returns hashedPassword
-        every { userRepository.save(any()) } returns userEntity
+        every { userRepository.saveAndFlush(any()) } returns userEntity
 
         // Act
         val result = authService.register(emailWithSpaces, usernameWithSpaces, password)
@@ -146,7 +153,7 @@ class AuthServiceTest {
         assertEquals(expectedUser.email, result.email)
         assertEquals(expectedUser.username, result.username)
         verify { userRepository.findByEmailOrUsername(trimmedEmail, trimmedUsername) }
-        verify { userRepository.save(match { entity ->
+        verify { userRepository.saveAndFlush(match { entity ->
             entity.email == trimmedEmail && entity.username == trimmedUsername
         }) }
     }
@@ -168,16 +175,16 @@ class AuthServiceTest {
             hasVerifiedEmail = false
         )
 
-        every { userRepository.findByEmailOrUsername(email, username) } returns null
+        every { userRepository.findByEmailOrUsername(email, username) } returns emptyList()
         every { passwordEncoder.encode(password) } returns hashedPassword
-        every { userRepository.save(any()) } returns userEntity
+        every { userRepository.saveAndFlush(any()) } returns userEntity
 
         // Act
         authService.register(email, username, password)
 
         // Assert
         verify { passwordEncoder.encode(password) }
-        verify { userRepository.save(match { entity ->
+        verify { userRepository.saveAndFlush(match { entity ->
             entity.hashedPassword == hashedPassword
         }) }
     }

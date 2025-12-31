@@ -75,7 +75,7 @@ class EmailVerificationServiceTest {
             val userEntity = createUserEntity(email = email)
 
             every { userRepository.findByEmail(email) } returns userEntity
-            every { emailVerificationTokenRepository.findByUserIdAndUsedAtIsNull(userEntity) } returns emptyList()
+            every { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(userEntity) } returns emptyList()
             every { emailVerificationTokenRepository.saveAll(any<List<EmailVerificationTokenEntity>>()) } returns emptyList()
             every { emailVerificationTokenRepository.save(any()) } answers {
                 val savedToken = firstArg<EmailVerificationTokenEntity>()
@@ -90,7 +90,7 @@ class EmailVerificationServiceTest {
             assertEquals(1L, result.id)
             assertEquals(email, result.user.email)
             verify { userRepository.findByEmail(email) }
-            verify { emailVerificationTokenRepository.findByUserIdAndUsedAtIsNull(userEntity) }
+            verify { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(userEntity) }
             verify { emailVerificationTokenRepository.save(any()) }
         }
 
@@ -107,7 +107,7 @@ class EmailVerificationServiceTest {
             }
 
             verify { userRepository.findByEmail(email) }
-            verify(exactly = 0) { emailVerificationTokenRepository.findByUserIdAndUsedAtIsNull(any()) }
+            verify(exactly = 0) { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(any()) }
             verify(exactly = 0) { emailVerificationTokenRepository.save(any()) }
         }
 
@@ -120,7 +120,7 @@ class EmailVerificationServiceTest {
             val existingToken2 = createTokenEntity(id = 2L, token = "old-token-2", user = userEntity)
 
             every { userRepository.findByEmail(email) } returns userEntity
-            every { emailVerificationTokenRepository.findByUserIdAndUsedAtIsNull(userEntity) } returns listOf(existingToken1, existingToken2)
+            every { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(userEntity) } returns listOf(existingToken1, existingToken2)
             every { emailVerificationTokenRepository.saveAll(any<List<EmailVerificationTokenEntity>>()) } answers {
                 firstArg<List<EmailVerificationTokenEntity>>()
             }

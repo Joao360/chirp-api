@@ -1,9 +1,6 @@
 package com.joaograca.chirp.service.auth
 
-import com.joaograca.chirp.domain.exception.InvalidCredentialsException
-import com.joaograca.chirp.domain.exception.InvalidTokenException
-import com.joaograca.chirp.domain.exception.UserAlreadyExistsException
-import com.joaograca.chirp.domain.exception.UserNotFoundException
+import com.joaograca.chirp.domain.exception.*
 import com.joaograca.chirp.domain.model.AuthenticatedUser
 import com.joaograca.chirp.domain.model.User
 import com.joaograca.chirp.domain.model.UserId
@@ -13,9 +10,9 @@ import com.joaograca.chirp.infra.database.mappers.toUser
 import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
 import com.joaograca.chirp.infra.security.PasswordEncoder
-import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.*
@@ -25,21 +22,28 @@ class AuthService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
-    private val refreshTokenRepository: RefreshTokenRepository
+    private val refreshTokenRepository: RefreshTokenRepository,
+    private val emailVerificationService: EmailVerificationService
 ) {
+    @Transactional
     fun register(email: String, username: String, password: String): User {
-        val user = userRepository.findByEmailOrUsername(email.trim(), username.trim())
-        if (user != null) {
+        val trimmedEmail = email.trim()
+        val users = userRepository.findByEmailOrUsername(trimmedEmail, username.trim())
+        if (users.isNotEmpty()) {
             throw UserAlreadyExistsException()
         }
 
-        val savedUser = userRepository.save(
+
+        val savedUser = userRepository.saveAndFlush(
             UserEntity(
-                email = email.trim(),
+                email = trimmedEmail,
                 username = username.trim(),
                 hashedPassword = passwordEncoder.encode(password)
             )
         ).toUser()
+
+        val token = emailVerificationService.createVerificationToken(trimmedEmail)
+
         return savedUser
     }
 
@@ -54,7 +58,9 @@ class AuthService(
             throw InvalidCredentialsException()
         }
 
-        // TODO: check for verified email
+        if (!user.hasVerifiedEmail) {
+            throw EmailNotVerifiedException()
+        }
 
         return user.id?.let { userId ->
             val accessToken = jwtService.generateAccessToken(userId)
