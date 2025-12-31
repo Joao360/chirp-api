@@ -3,18 +3,24 @@ package com.joaograca.chirp.service.auth
 import com.joaograca.chirp.domain.exception.UserAlreadyExistsException
 import com.joaograca.chirp.domain.model.User
 import com.joaograca.chirp.infra.database.entities.UserEntity
+import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
 import com.joaograca.chirp.infra.security.PasswordEncoder
-import io.mockk.*
-import org.junit.jupiter.api.Assertions.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.util.UUID
+import java.util.*
 
 class AuthServiceTest {
     private val userRepository = mockk<UserRepository>()
     private val passwordEncoder = mockk<PasswordEncoder>()
-    private val authService = AuthService(userRepository, passwordEncoder)
+    private val jwtService = mockk<JwtService>()
+    private val refreshTokenRepository = mockk<RefreshTokenRepository>()
+    private val authService = AuthService(userRepository, passwordEncoder, jwtService, refreshTokenRepository)
 
     @Test
     fun `register should successfully create a new user with valid credentials`() {
