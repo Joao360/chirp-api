@@ -1,4 +1,4 @@
-package com.joaograca.chirp.service.auth
+package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.exception.UserAlreadyExistsException
 import com.joaograca.chirp.domain.model.User

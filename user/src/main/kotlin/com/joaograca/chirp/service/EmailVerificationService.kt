@@ -1,4 +1,4 @@
-package com.joaograca.chirp.service.auth
+package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.UserNotFoundException

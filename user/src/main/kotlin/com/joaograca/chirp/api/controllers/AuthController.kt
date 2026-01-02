@@ -3,8 +3,8 @@ package com.joaograca.chirp.api.controllers
 import com.joaograca.chirp.api.dto.*
 import com.joaograca.chirp.api.mappers.toAuthenticatedUserDto
 import com.joaograca.chirp.api.mappers.toUserDto
-import com.joaograca.chirp.service.auth.AuthService
-import com.joaograca.chirp.service.auth.EmailVerificationService
+import com.joaograca.chirp.service.AuthService
+import com.joaograca.chirp.service.EmailVerificationService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 

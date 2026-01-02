@@ -1,4 +1,4 @@
-package com.joaograca.chirp.service.auth
+package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
@@ -7,12 +7,7 @@ import com.joaograca.chirp.infra.database.entities.UserEntity
 import com.joaograca.chirp.infra.database.repositories.EmailVerificationTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
 import io.mockk.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -83,9 +78,9 @@ class EmailVerificationServiceTest {
             val result = emailVerificationService.createVerificationToken(email)
 
             // Assert
-            assertNotNull(result)
-            assertEquals(1L, result.id)
-            assertEquals(email, result.user.email)
+            Assertions.assertNotNull(result)
+            Assertions.assertEquals(1L, result.id)
+            Assertions.assertEquals(email, result.user.email)
             verify { userRepository.findByEmail(email) }
             verify { emailVerificationTokenRepository.save(any()) }
         }
@@ -127,7 +122,7 @@ class EmailVerificationServiceTest {
             val result = emailVerificationService.createVerificationToken(email)
 
             // Assert
-            assertNotNull(result)
+            Assertions.assertNotNull(result)
             verify { emailVerificationTokenRepository.invalidateActiveTokensForUser(userEntity) }
             verify { emailVerificationTokenRepository.save(any()) }
         }
@@ -168,7 +163,7 @@ class EmailVerificationServiceTest {
                 emailVerificationService.verifyEmail(token)
             }
 
-            assertEquals("Email verification token is invalid", exception.message)
+            Assertions.assertEquals("Email verification token is invalid", exception.message)
             verify { emailVerificationTokenRepository.findByToken(token) }
             verify(exactly = 0) { emailVerificationTokenRepository.save(any()) }
             verify(exactly = 0) { userRepository.save(any()) }
@@ -192,7 +187,7 @@ class EmailVerificationServiceTest {
                 emailVerificationService.verifyEmail(token)
             }
 
-            assertEquals("Email verification token has already been used", exception.message)
+            Assertions.assertEquals("Email verification token has already been used", exception.message)
             verify { emailVerificationTokenRepository.findByToken(token) }
             verify(exactly = 0) { emailVerificationTokenRepository.save(any()) }
             verify(exactly = 0) { userRepository.save(any()) }
@@ -216,7 +211,7 @@ class EmailVerificationServiceTest {
                 emailVerificationService.verifyEmail(token)
             }
 
-            assertEquals("Email verification token has expired", exception.message)
+            Assertions.assertEquals("Email verification token has expired", exception.message)
             verify { emailVerificationTokenRepository.findByToken(token) }
             verify(exactly = 0) { emailVerificationTokenRepository.save(any()) }
             verify(exactly = 0) { userRepository.save(any()) }
