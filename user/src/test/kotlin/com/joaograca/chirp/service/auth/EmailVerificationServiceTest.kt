@@ -6,10 +6,7 @@ import com.joaograca.chirp.infra.database.entities.EmailVerificationTokenEntity
 import com.joaograca.chirp.infra.database.entities.UserEntity
 import com.joaograca.chirp.infra.database.repositories.EmailVerificationTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -76,7 +73,7 @@ class EmailVerificationServiceTest {
 
             every { userRepository.findByEmail(email) } returns userEntity
             every { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(userEntity) } returns emptyList()
-            every { emailVerificationTokenRepository.saveAll(any<List<EmailVerificationTokenEntity>>()) } returns emptyList()
+            every { emailVerificationTokenRepository.invalidateActiveTokensForUser(any()) } just runs
             every { emailVerificationTokenRepository.save(any()) } answers {
                 val savedToken = firstArg<EmailVerificationTokenEntity>()
                 savedToken.apply { id = 1L }
@@ -90,7 +87,6 @@ class EmailVerificationServiceTest {
             assertEquals(1L, result.id)
             assertEquals(email, result.user.email)
             verify { userRepository.findByEmail(email) }
-            verify { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(userEntity) }
             verify { emailVerificationTokenRepository.save(any()) }
         }
 
@@ -121,9 +117,7 @@ class EmailVerificationServiceTest {
 
             every { userRepository.findByEmail(email) } returns userEntity
             every { emailVerificationTokenRepository.findByUserAndUsedAtIsNull(userEntity) } returns listOf(existingToken1, existingToken2)
-            every { emailVerificationTokenRepository.saveAll(any<List<EmailVerificationTokenEntity>>()) } answers {
-                firstArg<List<EmailVerificationTokenEntity>>()
-            }
+            every { emailVerificationTokenRepository.invalidateActiveTokensForUser(userEntity) } just runs
             every { emailVerificationTokenRepository.save(any()) } answers {
                 val savedToken = firstArg<EmailVerificationTokenEntity>()
                 savedToken.apply { id = 3L }
@@ -134,9 +128,7 @@ class EmailVerificationServiceTest {
 
             // Assert
             assertNotNull(result)
-            verify { emailVerificationTokenRepository.saveAll(match<List<EmailVerificationTokenEntity>> { tokens ->
-                tokens.all { it.usedAt != null }
-            }) }
+            verify { emailVerificationTokenRepository.invalidateActiveTokensForUser(userEntity) }
             verify { emailVerificationTokenRepository.save(any()) }
         }
     }
