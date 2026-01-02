@@ -28,4 +28,10 @@ class PasswordResetTokenEntity(
     var usedAt: Instant? = null,
     @CreationTimestamp
     var createdAt: Instant = Instant.now()
-)
+) {
+    val isUsed: Boolean
+        get() = usedAt != null
+
+    val isExpired: Boolean
+        get() = Instant.now().isAfter(expiresAt)
+}

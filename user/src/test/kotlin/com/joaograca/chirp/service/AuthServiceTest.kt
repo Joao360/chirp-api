@@ -16,10 +16,14 @@ import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 class AuthServiceTest {
-    private val userRepository = mockk<UserRepository>()
-    private val passwordEncoder = mockk<PasswordEncoder>()
+    private val userRepository = mockk<UserRepository>(relaxUnitFun = true) {
+        every { saveAndFlush(any()) } answers { firstArg() }
+    }
+    private val passwordEncoder = mockk<PasswordEncoder> {
+        every { encode(any()) } returns "hashed_password"
+    }
     private val jwtService = mockk<JwtService>()
-    private val refreshTokenRepository = mockk<RefreshTokenRepository>()
+    private val refreshTokenRepository = mockk<RefreshTokenRepository>(relaxUnitFun = true)
     private val emailVerificationService = mockk<EmailVerificationService>(relaxed = true)
     private val authService = AuthService(
         userRepository = userRepository,
@@ -31,7 +35,7 @@ class AuthServiceTest {
 
     @Test
     fun `register should successfully create a new user with valid credentials`() {
-        // Arrange
+        // Given
         val userId = UUID.randomUUID()
         val email = "test@example.com"
         val username = "testuser"
@@ -51,10 +55,10 @@ class AuthServiceTest {
         every { passwordEncoder.encode(password) } returns hashedPassword
         every { userRepository.saveAndFlush(any()) } returns userEntity
 
-        // Act
+        // When
         val result = authService.register(email, username, password)
 
-        // Assert
+        // Then
         assertNotNull(result)
         assertEquals(expectedUser.email, result.email)
         assertEquals(expectedUser.username, result.username)
@@ -66,7 +70,7 @@ class AuthServiceTest {
 
     @Test
     fun `register should throw UserAlreadyExistsException when user with email already exists`() {
-        // Arrange
+        // Given
         val existingUserId = UUID.randomUUID()
         val email = "existing@example.com"
         val username = "newuser"
@@ -82,7 +86,7 @@ class AuthServiceTest {
 
         every { userRepository.findByEmailOrUsername(email, username) } returns listOf(existingUserEntity)
 
-        // Act & Assert
+        // When & Then
         assertThrows<UserAlreadyExistsException> {
             authService.register(email, username, password)
         }
@@ -94,7 +98,7 @@ class AuthServiceTest {
 
     @Test
     fun `register should throw UserAlreadyExistsException when user with username already exists`() {
-        // Arrange
+        // Given
         val existingUserId = UUID.randomUUID()
         val email = "new@example.com"
         val username = "existinguser"
@@ -110,7 +114,7 @@ class AuthServiceTest {
 
         every { userRepository.findByEmailOrUsername(email, username) } returns listOf(existingUserEntity)
 
-        // Act & Assert
+        // When & Then
         assertThrows<UserAlreadyExistsException> {
             authService.register(email, username, password)
         }
@@ -122,7 +126,7 @@ class AuthServiceTest {
 
     @Test
     fun `register should trim whitespace from email username and password inputs`() {
-        // Arrange
+        // Given
         val userId = UUID.randomUUID()
         val emailWithSpaces = "  test@example.com  "
         val usernameWithSpaces = "  testuser  "
@@ -139,19 +143,18 @@ class AuthServiceTest {
             hashedPassword = hashedPassword,
             hasVerifiedEmail = false
         )
-        val expectedUser = User(id = userId, email = trimmedEmail, username = trimmedUsername, hasEmailVerified = false)
 
         every { userRepository.findByEmailOrUsername(trimmedEmail, trimmedUsername) } returns emptyList()
         every { passwordEncoder.encode(password) } returns hashedPassword
         every { userRepository.saveAndFlush(any()) } returns userEntity
 
-        // Act
+        // When
         val result = authService.register(emailWithSpaces, usernameWithSpaces, password)
 
-        // Assert
+        // Then
         assertNotNull(result)
-        assertEquals(expectedUser.email, result.email)
-        assertEquals(expectedUser.username, result.username)
+        assertEquals(trimmedEmail, result.email)
+        assertEquals(trimmedUsername, result.username)
         verify { userRepository.findByEmailOrUsername(trimmedEmail, trimmedUsername) }
         verify { userRepository.saveAndFlush(match { entity ->
             entity.email == trimmedEmail && entity.username == trimmedUsername
@@ -160,7 +163,7 @@ class AuthServiceTest {
 
     @Test
     fun `register should hash the password using PasswordEncoder`() {
-        // Arrange
+        // Given
         val userId = UUID.randomUUID()
         val email = "test@example.com"
         val username = "testuser"
@@ -179,10 +182,10 @@ class AuthServiceTest {
         every { passwordEncoder.encode(password) } returns hashedPassword
         every { userRepository.saveAndFlush(any()) } returns userEntity
 
-        // Act
+        // When
         authService.register(email, username, password)
 
-        // Assert
+        // Then
         verify { passwordEncoder.encode(password) }
         verify { userRepository.saveAndFlush(match { entity ->
             entity.hashedPassword == hashedPassword
