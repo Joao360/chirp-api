@@ -58,7 +58,7 @@ class PasswordResetService(
 
         val user = resetToken.user
 
-        if (!passwordEncoder.matches(newPassword, user.hashedPassword)) {
+        if (passwordEncoder.matches(newPassword, user.hashedPassword)) {
             throw SamePasswordException()
         }
 

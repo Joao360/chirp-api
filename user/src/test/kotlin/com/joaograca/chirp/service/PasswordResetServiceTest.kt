@@ -113,7 +113,7 @@ class PasswordResetServiceTest {
             val tokenEntity = createPasswordResetTokenEntity(token = token, user = userEntity)
 
             every { passwordResetTokenRepository.findByToken(token) } returns tokenEntity
-            every { passwordEncoder.matches(newPassword, userEntity.hashedPassword) } returns true
+            every { passwordEncoder.matches(newPassword, userEntity.hashedPassword) } returns false
             every { passwordEncoder.encode(newPassword) } returns hashedNewPassword
 
             // When
@@ -202,10 +202,8 @@ class PasswordResetServiceTest {
             val userEntity = createUserEntity(hashedPassword = "hashed_current_password")
             val tokenEntity = createPasswordResetTokenEntity(token = token, user = userEntity)
 
-            // Note: The current implementation throws SamePasswordException when passwords DON'T match
-            // which appears to be a bug in the original code (condition is inverted)
             every { passwordResetTokenRepository.findByToken(token) } returns tokenEntity
-            every { passwordEncoder.matches(newPassword, userEntity.hashedPassword) } returns false
+            every { passwordEncoder.matches(newPassword, userEntity.hashedPassword) } returns true
 
             // When & Then
             assertThrows<SamePasswordException> {
@@ -228,7 +226,7 @@ class PasswordResetServiceTest {
             val tokenEntity = createPasswordResetTokenEntity(token = token, user = userEntity)
 
             every { passwordResetTokenRepository.findByToken(token) } returns tokenEntity
-            every { passwordEncoder.matches(newPassword, userEntity.hashedPassword) } returns true
+            every { passwordEncoder.matches(newPassword, userEntity.hashedPassword) } returns false
 
             // When
             passwordResetService.resetPassword(token, newPassword)
