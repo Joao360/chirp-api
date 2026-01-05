@@ -1,5 +1,6 @@
 package com.joaograca.chirp.api.controllers
 
+import com.joaograca.chirp.api.config.IpRateLimit
 import com.joaograca.chirp.api.dto.*
 import com.joaograca.chirp.api.mappers.toAuthenticatedUserDto
 import com.joaograca.chirp.api.mappers.toUserDto
@@ -9,6 +10,7 @@ import com.joaograca.chirp.service.EmailVerificationService
 import com.joaograca.chirp.service.PasswordResetService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
+import java.util.concurrent.TimeUnit
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,6 +21,11 @@ class AuthController(
     private val emailRateLimiter: EmailRateLimiter
 ) {
     @PostMapping("/register")
+    @IpRateLimit(
+        requests = 10,
+        duration = 1L,
+        unit = TimeUnit.HOURS
+    )
     fun register(
         @Valid @RequestBody body: RegisterRequest
     ): UserDto {
@@ -30,6 +37,11 @@ class AuthController(
     }
 
     @PostMapping("/login")
+    @IpRateLimit(
+        requests = 10,
+        duration = 1L,
+        unit = TimeUnit.HOURS
+    )
     fun login(
         @RequestBody body: LoginRequest,
     ): AuthenticatedUserDto {
@@ -55,6 +67,11 @@ class AuthController(
     }
 
     @PostMapping("/resend-verification")
+    @IpRateLimit(
+        requests = 10,
+        duration = 1L,
+        unit = TimeUnit.HOURS
+    )
     fun resendVerificationEmail(
         @Valid @RequestBody body: EmailRequest
     ) {
@@ -71,6 +88,11 @@ class AuthController(
     }
 
     @PostMapping("/forgot-password")
+    @IpRateLimit(
+        requests = 10,
+        duration = 1L,
+        unit = TimeUnit.HOURS
+    )
     fun forgotPassword(
         @Valid @RequestBody body: EmailRequest
     ) {
