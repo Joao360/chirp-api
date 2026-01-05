@@ -12,4 +12,4 @@ nginx:
 chirp:
   rate-limit:
     ip:
-      apply-limit: true
+      apply-limit: false
