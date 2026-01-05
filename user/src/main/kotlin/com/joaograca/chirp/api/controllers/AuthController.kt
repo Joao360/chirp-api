@@ -3,6 +3,7 @@ package com.joaograca.chirp.api.controllers
 import com.joaograca.chirp.api.dto.*
 import com.joaograca.chirp.api.mappers.toAuthenticatedUserDto
 import com.joaograca.chirp.api.mappers.toUserDto
+import com.joaograca.chirp.infra.rate_limiting.EmailRateLimiter
 import com.joaograca.chirp.service.AuthService
 import com.joaograca.chirp.service.EmailVerificationService
 import com.joaograca.chirp.service.PasswordResetService
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.*
 class AuthController(
     private val authService: AuthService,
     private val emailVerificationService: EmailVerificationService,
-    private val passwordResetService: PasswordResetService
+    private val passwordResetService: PasswordResetService,
+    private val emailRateLimiter: EmailRateLimiter
 ) {
     @PostMapping("/register")
     fun register(
@@ -50,6 +52,15 @@ class AuthController(
         @RequestBody body: RefreshRequest
     ) {
         authService.logout(body.refreshToken)
+    }
+
+    @PostMapping("/resend-verification")
+    fun resendVerificationEmail(
+        @Valid @RequestBody body: EmailRequest
+    ) {
+        emailRateLimiter.withRateLimit(body.email) {
+            emailVerificationService.resendVerificationEmail(body.email)
+        }
     }
 
     @GetMapping("/verify")
