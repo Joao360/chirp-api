@@ -13,6 +13,13 @@ environment:
 
 Both PostgreSQL and Redis were used through hosted services (Supabase and Redis Cloud respectively).
 
+### PostgreSQL
+
+To connect to the PostgreSQL database on Supabase, you can find the connection details in the Supabase dashboard.
+
+At the time of set up, the IPv4 wasn't compatible, and as such we're using the **Session Pooler** connection string found in the "Connect" &rarr; "Method" section.
+
+### Redis
 To retrieve the Redis password from Redis Cloud, use the following image as a reference:
 
 ![Redis Cloud Password](./docs/images/redis-cloud-password.png)
