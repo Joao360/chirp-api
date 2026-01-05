@@ -40,7 +40,8 @@ class AuthController(
     @IpRateLimit(
         requests = 10,
         duration = 1L,
-        unit = TimeUnit.HOURS
+        unit = TimeUnit.HOURS,
+        endpointSpecific = true
     )
     fun login(
         @RequestBody body: LoginRequest,

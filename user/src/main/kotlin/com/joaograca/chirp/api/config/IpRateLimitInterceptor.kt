@@ -25,6 +25,11 @@ class IpRateLimitInterceptor(
                 val clientIp = ipResolver.getClientIp(request)
 
                 return try {
+                    val endpoint = if (annotation.endpointSpecific) {
+                        request.requestURI
+                    } else {
+                        null
+                    }
                     ipRateLimiter.withIpRateLimit(
                         ipAddress = clientIp,
                         resetsIn = Duration.of(
@@ -32,6 +37,7 @@ class IpRateLimitInterceptor(
                             annotation.unit.toChronoUnit()
                         ),
                         maxRequestsPerIp = annotation.requests,
+                        endpoint = endpoint,
                         action = { true }
                     )
                 } catch (e: RateLimitException) {
