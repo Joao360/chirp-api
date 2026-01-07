@@ -4,6 +4,7 @@ import com.joaograca.chirp.api.config.IpRateLimit
 import com.joaograca.chirp.api.dto.*
 import com.joaograca.chirp.api.mappers.toAuthenticatedUserDto
 import com.joaograca.chirp.api.mappers.toUserDto
+import com.joaograca.chirp.api.util.requestUserId
 import com.joaograca.chirp.infra.rate_limiting.EmailRateLimiter
 import com.joaograca.chirp.service.AuthService
 import com.joaograca.chirp.service.EmailVerificationService
@@ -114,9 +115,10 @@ class AuthController(
     fun changePassword(
         @Valid @RequestBody body: ChangePasswordRequest
     ) {
-        // TODO: Extract request user ID from JWT token
-//        passwordResetService.changePassword(
-//            userId =
-//        )
+        passwordResetService.changePassword(
+            userId = requestUserId,
+            oldPassword = body.oldPassword,
+            newPassword = body.newPassword
+        )
     }
 }
