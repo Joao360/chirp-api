@@ -10,6 +10,7 @@ environment:
 - POSTGRES_PASSWORD: The password for the PostgreSQL database.
 - REDIS_PASSWORD: The password for the Redis server.
 - JWT_SECRET_BASE64: A base64-encoded secret key for JWT authentication.
+- RABBITMQ_PASSWORD: The password for the RabbitMQ server.
 
 Both PostgreSQL and Redis were used through hosted services (Supabase and Redis Cloud respectively).
 
