@@ -13,6 +13,12 @@ repositories {
     maven { url = uri("https://repo.spring.io/snapshot") }
 }
 
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.boot:spring-boot-dependencies:${libraries.findVersion("spring-boot").get()}")
+    }
+}
+
 configure<KotlinJvmProjectExtension> {
     jvmToolchain(21)
 }
