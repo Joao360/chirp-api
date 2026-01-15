@@ -3,7 +3,7 @@ package com.joaograca.chirp.service
 import com.joaograca.chirp.domain.exception.*
 import com.joaograca.chirp.domain.model.AuthenticatedUser
 import com.joaograca.chirp.domain.model.User
-import com.joaograca.chirp.domain.model.UserId
+import com.joaograca.chirp.domain.type.UserId
 import com.joaograca.chirp.infra.database.entities.RefreshTokenEntity
 import com.joaograca.chirp.infra.database.entities.UserEntity
 import com.joaograca.chirp.infra.database.mappers.toUser

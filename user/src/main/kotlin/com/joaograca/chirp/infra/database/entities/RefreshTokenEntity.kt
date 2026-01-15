@@ -1,6 +1,6 @@
 package com.joaograca.chirp.infra.database.entities
 
-import com.joaograca.chirp.domain.model.UserId
+import com.joaograca.chirp.domain.type.UserId
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
 import java.time.Instant

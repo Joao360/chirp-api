@@ -1,13 +1,7 @@
 package com.joaograca.chirp.infra.database.entities
 
-import com.joaograca.chirp.domain.model.UserId
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Index
-import jakarta.persistence.Table
+import com.joaograca.chirp.domain.type.UserId
+import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.Instant

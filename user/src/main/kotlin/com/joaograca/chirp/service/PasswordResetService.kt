@@ -4,7 +4,7 @@ import com.joaograca.chirp.domain.exception.InvalidCredentialsException
 import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.SamePasswordException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
-import com.joaograca.chirp.domain.model.UserId
+import com.joaograca.chirp.domain.type.UserId
 import com.joaograca.chirp.infra.database.entities.PasswordResetTokenEntity
 import com.joaograca.chirp.infra.database.repositories.PasswordResetTokenRepository
 import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository

@@ -1,7 +1,7 @@
 package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.exception.InvalidTokenException
-import com.joaograca.chirp.domain.model.UserId
+import com.joaograca.chirp.domain.type.UserId
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
