@@ -2,7 +2,7 @@ package com.joaograca.chirp.infra.database.entities
 
 import java.util.*
 
-fun createUserEntity(
+fun userEntity(
     id: UUID = UUID.randomUUID(),
     email: String = "test@example.com",
     username: String = "testuser",

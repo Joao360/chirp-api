@@ -5,7 +5,7 @@ import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.SamePasswordException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
 import com.joaograca.chirp.infra.database.entities.createPasswordResetTokenEntity
-import com.joaograca.chirp.infra.database.entities.createUserEntity
+import com.joaograca.chirp.infra.database.entities.userEntity
 import com.joaograca.chirp.infra.database.repositories.PasswordResetTokenRepository
 import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
@@ -49,7 +49,7 @@ class PasswordResetServiceTest {
         fun `should create password reset token when user exists`() {
             // Given
             val email = "test@example.com"
-            val userEntity = createUserEntity(email = email)
+            val userEntity = userEntity(email = email)
 
             every { userRepository.findByEmail(email) } returns userEntity
 
@@ -84,7 +84,7 @@ class PasswordResetServiceTest {
         fun `should invalidate existing active tokens before creating new one`() {
             // Given
             val email = "test@example.com"
-            val userEntity = createUserEntity(email = email)
+            val userEntity = userEntity(email = email)
 
             every { userRepository.findByEmail(email) } returns userEntity
 
@@ -109,7 +109,7 @@ class PasswordResetServiceTest {
             val newPassword = "newPassword123"
             val hashedNewPassword = "hashed_new_password"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId, hashedPassword = "old_hashed_password")
+            val userEntity = userEntity(id = userId, hashedPassword = "old_hashed_password")
             val tokenEntity = createPasswordResetTokenEntity(token = token, user = userEntity)
 
             every { passwordResetTokenRepository.findByToken(token) } returns tokenEntity
@@ -150,7 +150,7 @@ class PasswordResetServiceTest {
         fun `should throw InvalidTokenException when token is already used`() {
             // Given
             val token = "used-token"
-            val userEntity = createUserEntity()
+            val userEntity = userEntity()
             val tokenEntity = createPasswordResetTokenEntity(
                 token = token,
                 user = userEntity,
@@ -174,7 +174,7 @@ class PasswordResetServiceTest {
         fun `should throw InvalidTokenException when token is expired`() {
             // Given
             val token = "expired-token"
-            val userEntity = createUserEntity()
+            val userEntity = userEntity()
             val tokenEntity = createPasswordResetTokenEntity(
                 token = token,
                 user = userEntity,
@@ -199,7 +199,7 @@ class PasswordResetServiceTest {
             // Given
             val token = "valid-token"
             val newPassword = "differentPassword123"
-            val userEntity = createUserEntity(hashedPassword = "hashed_current_password")
+            val userEntity = userEntity(hashedPassword = "hashed_current_password")
             val tokenEntity = createPasswordResetTokenEntity(token = token, user = userEntity)
 
             every { passwordResetTokenRepository.findByToken(token) } returns tokenEntity
@@ -222,7 +222,7 @@ class PasswordResetServiceTest {
             val token = "valid-token"
             val newPassword = "newPassword123"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId)
+            val userEntity = userEntity(id = userId)
             val tokenEntity = createPasswordResetTokenEntity(token = token, user = userEntity)
 
             every { passwordResetTokenRepository.findByToken(token) } returns tokenEntity
@@ -246,7 +246,7 @@ class PasswordResetServiceTest {
             val newPassword = "newPassword123"
             val hashedNewPassword = "hashed_new_password"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId, hashedPassword = "hashed_old_password")
+            val userEntity = userEntity(id = userId, hashedPassword = "hashed_old_password")
 
             every { userRepository.findById(userId) } returns Optional.of(userEntity)
             every { passwordEncoder.matches(oldPassword, userEntity.hashedPassword) } returns true
@@ -286,7 +286,7 @@ class PasswordResetServiceTest {
             val oldPassword = "wrongPassword"
             val newPassword = "newPassword123"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId, hashedPassword = "hashed_correct_password")
+            val userEntity = userEntity(id = userId, hashedPassword = "hashed_correct_password")
 
             every { userRepository.findById(userId) } returns Optional.of(userEntity)
             every { passwordEncoder.matches(oldPassword, userEntity.hashedPassword) } returns false
@@ -307,7 +307,7 @@ class PasswordResetServiceTest {
             // Given
             val samePassword = "samePassword123"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId)
+            val userEntity = userEntity(id = userId)
 
             every { userRepository.findById(userId) } returns Optional.of(userEntity)
             every { passwordEncoder.matches(samePassword, userEntity.hashedPassword) } returns true
@@ -329,7 +329,7 @@ class PasswordResetServiceTest {
             val oldPassword = "oldPassword123"
             val newPassword = "newPassword123"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId)
+            val userEntity = userEntity(id = userId)
 
             every { userRepository.findById(userId) } returns Optional.of(userEntity)
             every { passwordEncoder.matches(oldPassword, userEntity.hashedPassword) } returns true
@@ -347,7 +347,7 @@ class PasswordResetServiceTest {
             val oldPassword = "oldPassword123"
             val newPassword = "newPassword123"
             val userId = UUID.randomUUID()
-            val userEntity = createUserEntity(id = userId)
+            val userEntity = userEntity(id = userId)
 
             every { userRepository.findById(userId) } returns Optional.of(userEntity)
             every { passwordEncoder.matches(oldPassword, userEntity.hashedPassword) } returns true

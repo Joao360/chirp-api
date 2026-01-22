@@ -1,10 +1,15 @@
 package com.joaograca.chirp.service
 
+import com.joaograca.chirp.domain.events.user.UserEvent
 import com.joaograca.chirp.domain.exception.UserAlreadyExistsException
 import com.joaograca.chirp.domain.model.User
+import com.joaograca.chirp.domain.model.emailVerificationToken
 import com.joaograca.chirp.infra.database.entities.UserEntity
+import com.joaograca.chirp.infra.database.entities.userEntity
+import com.joaograca.chirp.infra.database.mappers.toUser
 import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
+import com.joaograca.chirp.infra.message_queue.EventPublisher
 import com.joaograca.chirp.infra.security.PasswordEncoder
 import io.mockk.every
 import io.mockk.mockk
@@ -25,12 +30,14 @@ class AuthServiceTest {
     private val jwtService = mockk<JwtService>()
     private val refreshTokenRepository = mockk<RefreshTokenRepository>(relaxUnitFun = true)
     private val emailVerificationService = mockk<EmailVerificationService>(relaxed = true)
+    private val eventPublisher = mockk<EventPublisher>(relaxUnitFun = true)
     private val authService = AuthService(
         userRepository = userRepository,
         passwordEncoder = passwordEncoder,
         jwtService = jwtService,
         refreshTokenRepository = refreshTokenRepository,
-        emailVerificationService = emailVerificationService
+        emailVerificationService = emailVerificationService,
+        eventPublisher = eventPublisher
     )
 
     @Test
@@ -49,7 +56,6 @@ class AuthServiceTest {
             hashedPassword = hashedPassword,
             hasVerifiedEmail = false
         )
-        val expectedUser = User(id = userId, email = email, username = username, hasEmailVerified = false)
 
         every { userRepository.findByEmailOrUsername(email, username) } returns emptyList()
         every { passwordEncoder.encode(password) } returns hashedPassword
@@ -59,6 +65,7 @@ class AuthServiceTest {
         val result = authService.register(email, username, password)
 
         // Then
+        val expectedUser = User(id = userId, email = email, username = username, hasEmailVerified = false)
         assertNotNull(result)
         assertEquals(expectedUser.email, result.email)
         assertEquals(expectedUser.username, result.username)
@@ -156,9 +163,11 @@ class AuthServiceTest {
         assertEquals(trimmedEmail, result.email)
         assertEquals(trimmedUsername, result.username)
         verify { userRepository.findByEmailOrUsername(trimmedEmail, trimmedUsername) }
-        verify { userRepository.saveAndFlush(match { entity ->
-            entity.email == trimmedEmail && entity.username == trimmedUsername
-        }) }
+        verify {
+            userRepository.saveAndFlush(
+                match { it.email == trimmedEmail && it.username == trimmedUsername }
+            )
+        }
     }
 
     @Test
@@ -187,9 +196,36 @@ class AuthServiceTest {
 
         // Then
         verify { passwordEncoder.encode(password) }
-        verify { userRepository.saveAndFlush(match { entity ->
-            entity.hashedPassword == hashedPassword
-        }) }
+        verify {
+            userRepository.saveAndFlush(
+                match { it.hashedPassword == hashedPassword }
+            )
+        }
+    }
+
+    @Test
+    fun `register should publish UserEvent Created after successful registration`() {
+        // Given
+        val userEntity = userEntity()
+        val emailVerificationToken = emailVerificationToken(user = userEntity.toUser())
+        every { userRepository.findByEmailOrUsername(any(), any()) } returns emptyList()
+        every { passwordEncoder.encode(any()) } returns "hashed_password"
+        every { userRepository.saveAndFlush(any()) } returns userEntity
+        every { emailVerificationService.createVerificationToken(any()) } returns
+                emailVerificationToken
+        // When
+        authService.register("email", "username", "password")
+
+        // Then
+        val expectedEvent = UserEvent.Created(
+            userId = userEntity.id!!,
+            email = userEntity.email,
+            username = userEntity.username,
+            verificationToken = emailVerificationToken.token
+        )
+        verify {
+            eventPublisher.publish(expectedEvent)
+        }
     }
 }
 

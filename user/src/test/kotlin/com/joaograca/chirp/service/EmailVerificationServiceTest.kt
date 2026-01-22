@@ -1,12 +1,16 @@
 package com.joaograca.chirp.service
 
+import com.joaograca.chirp.domain.events.user.UserEvent
 import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
+import com.joaograca.chirp.domain.model.emailVerificationToken
 import com.joaograca.chirp.infra.database.entities.EmailVerificationTokenEntity
 import com.joaograca.chirp.infra.database.entities.createTokenEntity
-import com.joaograca.chirp.infra.database.entities.createUserEntity
+import com.joaograca.chirp.infra.database.entities.userEntity
+import com.joaograca.chirp.infra.database.mappers.toUser
 import com.joaograca.chirp.infra.database.repositories.EmailVerificationTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
+import com.joaograca.chirp.infra.message_queue.EventPublisher
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -28,11 +32,13 @@ class EmailVerificationServiceTest {
         every { findByUserAndUsedAtIsNull(any()) } returns emptyList()
     }
     private val expiryHours = 24L
+    private val eventPublisher = mockk<EventPublisher>(relaxUnitFun = true)
 
     private val emailVerificationService = EmailVerificationService(
-        emailVerificationTokenRepository,
-        userRepository,
-        expiryHours
+        emailVerificationTokenRepository = emailVerificationTokenRepository,
+        userRepository = userRepository,
+        expiryHours = expiryHours,
+        eventPublisher = eventPublisher
     )
 
     @Nested
@@ -42,7 +48,7 @@ class EmailVerificationServiceTest {
         fun `should create verification token successfully when user exists`() {
             // Given
             val email = "test@example.com"
-            val userEntity = createUserEntity(email = email)
+            val userEntity = userEntity(email = email)
 
             every { userRepository.findByEmail(email) } returns userEntity
             every { emailVerificationTokenRepository.save(any()) } answers {
@@ -82,7 +88,7 @@ class EmailVerificationServiceTest {
         fun `should invalidate existing unused tokens when creating new token`() {
             // Given
             val email = "test@example.com"
-            val userEntity = createUserEntity(email = email)
+            val userEntity = userEntity(email = email)
             val existingToken1 = createTokenEntity(id = 1L, token = "old-token-1", user = userEntity)
             val existingToken2 = createTokenEntity(id = 2L, token = "old-token-2", user = userEntity)
 
@@ -110,7 +116,7 @@ class EmailVerificationServiceTest {
         fun `should verify email successfully with valid token`() {
             // Given
             val token = "valid-token"
-            val userEntity = createUserEntity(hasVerifiedEmail = false)
+            val userEntity = userEntity(hasVerifiedEmail = false)
             val tokenEntity = createTokenEntity(token = token, user = userEntity)
 
             every { emailVerificationTokenRepository.findByToken(token) } returns tokenEntity
@@ -146,7 +152,7 @@ class EmailVerificationServiceTest {
         fun `should throw InvalidTokenException when token is already used`() {
             // Given
             val token = "used-token"
-            val userEntity = createUserEntity()
+            val userEntity = userEntity()
             val tokenEntity = createTokenEntity(
                 token = token,
                 user = userEntity,
@@ -170,7 +176,7 @@ class EmailVerificationServiceTest {
         fun `should throw InvalidTokenException when token is expired`() {
             // Given
             val token = "expired-token"
-            val userEntity = createUserEntity()
+            val userEntity = userEntity()
             val tokenEntity = createTokenEntity(
                 token = token,
                 user = userEntity,
@@ -188,6 +194,46 @@ class EmailVerificationServiceTest {
             verify { emailVerificationTokenRepository.findByToken(token) }
             verify(exactly = 0) { emailVerificationTokenRepository.save(any()) }
             verify(exactly = 0) { userRepository.save(any()) }
+        }
+
+        @Test
+        fun `resendVerificationEmail should not send email if user already verified`() {
+            // Given
+            every { userRepository.findByEmail(any()) } returns userEntity(hasVerifiedEmail = true)
+
+            // When
+            emailVerificationService.resendVerificationEmail("email")
+
+            // Then
+            verify(exactly = 0) { eventPublisher.publish(any()) }
+        }
+
+        @Test
+        fun `resendVerificationEmail should send email if user not verified`() {
+            // Given
+            val userEntity = userEntity(hasVerifiedEmail = false)
+            val emailVerificationToken = emailVerificationToken(user = userEntity.toUser())
+            every { userRepository.findByEmail(any()) } returns userEntity
+            every { emailVerificationTokenRepository.save(any()) } returns EmailVerificationTokenEntity(
+                id = emailVerificationToken.id,
+                token = emailVerificationToken.token,
+                expiresAt = Instant.now().plus(24, ChronoUnit.HOURS),
+                user = userEntity
+            )
+
+            // When
+            emailVerificationService.resendVerificationEmail("email")
+
+            // Then
+            val expectedEvent = UserEvent.RequestResendVerification(
+                userId = userEntity.id!!,
+                email = userEntity.email,
+                username = userEntity.username,
+                verificationToken = emailVerificationToken.token,
+            )
+            verify {
+                eventPublisher.publish(expectedEvent)
+            }
         }
     }
 

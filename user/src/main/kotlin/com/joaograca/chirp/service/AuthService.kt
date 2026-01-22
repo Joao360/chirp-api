@@ -1,5 +1,6 @@
 package com.joaograca.chirp.service
 
+import com.joaograca.chirp.domain.events.user.UserEvent
 import com.joaograca.chirp.domain.exception.*
 import com.joaograca.chirp.domain.model.AuthenticatedUser
 import com.joaograca.chirp.domain.model.User
@@ -9,6 +10,7 @@ import com.joaograca.chirp.infra.database.entities.UserEntity
 import com.joaograca.chirp.infra.database.mappers.toUser
 import com.joaograca.chirp.infra.database.repositories.RefreshTokenRepository
 import com.joaograca.chirp.infra.database.repositories.UserRepository
+import com.joaograca.chirp.infra.message_queue.EventPublisher
 import com.joaograca.chirp.infra.security.PasswordEncoder
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -23,7 +25,8 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val emailVerificationService: EmailVerificationService
+    private val emailVerificationService: EmailVerificationService,
+    private val eventPublisher: EventPublisher
 ) {
     @Transactional
     fun register(email: String, username: String, password: String): User {
@@ -32,7 +35,6 @@ class AuthService(
         if (users.isNotEmpty()) {
             throw UserAlreadyExistsException()
         }
-
 
         val savedUser = userRepository.saveAndFlush(
             UserEntity(
@@ -43,6 +45,15 @@ class AuthService(
         ).toUser()
 
         val token = emailVerificationService.createVerificationToken(trimmedEmail)
+
+        eventPublisher.publish(
+            UserEvent.Created(
+                userId = savedUser.id,
+                email = savedUser.email,
+                username = savedUser.username,
+                verificationToken = token.token,
+            )
+        )
 
         return savedUser
     }
