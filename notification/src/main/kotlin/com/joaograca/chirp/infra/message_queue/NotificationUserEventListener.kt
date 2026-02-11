@@ -1,25 +1,48 @@
 package com.joaograca.chirp.infra.message_queue
 
 import com.joaograca.chirp.domain.events.user.UserEvent
+import com.joaograca.chirp.service.EmailService
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
 
 @Component
-class NotificationUserEventListener {
+class NotificationUserEventListener(
+    private val emailService: EmailService
+) {
 
-    @RabbitListener(queues = [MessageQueues.NOTIFICATION_USER_EVENTS])
+    @RabbitListener(
+        queues = [MessageQueues.NOTIFICATION_USER_EVENTS],
+        containerFactory = "rabbitListenerContainerFactory"
+    )
     @Transactional
     fun handleUserEvent(event: UserEvent) {
         when (event) {
             is UserEvent.Created -> {
-                println("User created!")
+                emailService.sendVerificationEmail(
+                    email = event.email,
+                    username = event.username,
+                    userId = event.userId,
+                    token = event.verificationToken
+                )
             }
             is UserEvent.RequestResendVerification -> {
-                println("Request resend verification!")
+                emailService.sendVerificationEmail(
+                    email = event.email,
+                    username = event.username,
+                    userId = event.userId,
+                    token = event.verificationToken
+                )
             }
             is UserEvent.RequestResetPassword -> {
-                println("Request reset password!")
+                emailService.sendPasswordResetEmail(
+                    email = event.email,
+                    username = event.username,
+                    userId = event.userId,
+                    token = event.passwordResetToken,
+                    expiresIn = Duration.ofMinutes(event.expiresInMinutes)
+                )
             }
             else -> Unit
         }

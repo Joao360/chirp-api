@@ -75,6 +75,7 @@ jwt:
 
 chirp:
   email:
+    from: mail@joaograca.com
     verification:
       expiry-hours: 24
     reset-password:
