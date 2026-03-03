@@ -6,7 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
 interface ChatParticipantRepository : JpaRepository<ChatParticipantEntity, UserId> {
-    fun findByUserIdIn(userIds: List<UserId>): Set<ChatParticipantEntity>
+    fun findByUserIdIn(userIds: Set<UserId>): Set<ChatParticipantEntity>
+
     @Query("""
         SELECT p 
         FROM ChatParticipantEntity p
