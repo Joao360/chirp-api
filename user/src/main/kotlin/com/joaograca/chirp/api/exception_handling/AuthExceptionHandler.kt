@@ -1,6 +1,7 @@
 package com.joaograca.chirp.api.exception_handling
 
 import com.joaograca.chirp.domain.exception.*
+import com.joaograca.chirp.domain.exceptions.UnauthorizedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException

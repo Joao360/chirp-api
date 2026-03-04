@@ -16,6 +16,7 @@ dependencies {
     api(libs.kotlin.reflect)
 
     implementation(libs.spring.boot.starter.amqp)
+    implementation(libs.spring.boot.starter.security)
 
     testImplementation(kotlin("test"))
 }
