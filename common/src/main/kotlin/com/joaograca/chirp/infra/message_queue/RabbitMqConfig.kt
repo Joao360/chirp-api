@@ -1,6 +1,7 @@
 package com.joaograca.chirp.infra.message_queue
 
 import com.joaograca.chirp.domain.events.ChirpEvent
+import com.joaograca.chirp.domain.events.chat.ChatEventConstants
 import com.joaograca.chirp.domain.events.user.UserEventConstants
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
@@ -75,8 +76,21 @@ class RabbitMqConfig {
     )
 
     @Bean
+    fun chatExchange() = TopicExchange(
+        /* name = */ ChatEventConstants.CHAT_EXCHANGE,
+        /* durable = */ true,
+        /* autoDelete = */ false
+    )
+
+    @Bean
     fun notificationUserEventsQueue() = Queue(
         /* name = */ MessageQueues.NOTIFICATION_USER_EVENTS,
+        /* durable = */ true
+    )
+
+    @Bean
+    fun chatUserEventsQueue() = Queue(
+        /* name = */ MessageQueues.CHAT_USER_EVENTS,
         /* durable = */ true
     )
 
@@ -87,6 +101,17 @@ class RabbitMqConfig {
     ): Binding {
         return BindingBuilder
             .bind(notificationUserEventsQueue)
+            .to(userExchange)
+            .with("user.*")
+    }
+
+    @Bean
+    fun chatUserEventsBinding(
+        chatUserEventsQueue: Queue,
+        userExchange: TopicExchange
+    ): Binding {
+        return BindingBuilder
+            .bind(chatUserEventsQueue)
             .to(userExchange)
             .with("user.*")
     }
