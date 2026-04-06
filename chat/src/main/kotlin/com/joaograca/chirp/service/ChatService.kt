@@ -2,6 +2,8 @@ package com.joaograca.chirp.service
 
 import com.joaograca.chirp.api.dto.ChatMessageDto
 import com.joaograca.chirp.api.mappers.toChatMessageDto
+import com.joaograca.chirp.domain.event.ChatParticipantLeftEvent
+import com.joaograca.chirp.domain.event.ChatParticipantsJoinedEvent
 import com.joaograca.chirp.domain.exception.ChatNotFoundException
 import com.joaograca.chirp.domain.exception.ChatParticipantNotFoundException
 import com.joaograca.chirp.domain.exception.InvalidChatSizeException
@@ -16,6 +18,7 @@ import com.joaograca.chirp.infra.database.mappers.toChatMessage
 import com.joaograca.chirp.infra.database.repositories.ChatMessageRepository
 import com.joaograca.chirp.infra.database.repositories.ChatParticipantRepository
 import com.joaograca.chirp.infra.database.repositories.ChatRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -26,7 +29,8 @@ import java.time.Instant
 class ChatService(
     private val chatRepository: ChatRepository,
     private val chatParticipantRepository: ChatParticipantRepository,
-    private val chatMessageRepository: ChatMessageRepository
+    private val chatMessageRepository: ChatMessageRepository,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) {
     fun getChatMessages(
         chatId: ChatId,
@@ -96,6 +100,13 @@ class ChatService(
             }
         ).toChat(lastMessage = lastMessage)
 
+        applicationEventPublisher.publishEvent(
+            ChatParticipantsJoinedEvent(
+                chatId = chatId,
+                userIds = userIds
+            )
+        )
+
         return updatedChat
     }
 
@@ -117,6 +128,13 @@ class ChatService(
             chat.apply {
                 participants = chat.participants - participant
             }
+        )
+
+        applicationEventPublisher.publishEvent(
+            ChatParticipantLeftEvent(
+                chatId = chatId,
+                userId = userId
+            )
         )
     }
 
