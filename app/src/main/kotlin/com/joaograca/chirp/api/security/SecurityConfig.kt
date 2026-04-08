@@ -1,4 +1,4 @@
-package com.joaograca.chirp.security
+package com.joaograca.chirp.api.security
 
 import com.joaograca.chirp.api.config.JwtAuthFilter
 import jakarta.servlet.DispatcherType
