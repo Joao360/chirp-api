@@ -1,9 +1,9 @@
 package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.exception.InvalidCredentialsException
-import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.SamePasswordException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
+import com.joaograca.chirp.domain.exceptions.InvalidTokenException
 import com.joaograca.chirp.infra.database.entities.createPasswordResetTokenEntity
 import com.joaograca.chirp.infra.database.entities.userEntity
 import com.joaograca.chirp.infra.database.repositories.PasswordResetTokenRepository

@@ -2,9 +2,9 @@ package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.events.user.UserEvent
 import com.joaograca.chirp.domain.exception.InvalidCredentialsException
-import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.SamePasswordException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
+import com.joaograca.chirp.domain.exceptions.InvalidTokenException
 import com.joaograca.chirp.domain.type.UserId
 import com.joaograca.chirp.infra.database.entities.PasswordResetTokenEntity
 import com.joaograca.chirp.infra.database.repositories.PasswordResetTokenRepository

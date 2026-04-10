@@ -1,7 +1,11 @@
 package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.events.user.UserEvent
-import com.joaograca.chirp.domain.exception.*
+import com.joaograca.chirp.domain.exception.EmailNotVerifiedException
+import com.joaograca.chirp.domain.exception.InvalidCredentialsException
+import com.joaograca.chirp.domain.exception.UserAlreadyExistsException
+import com.joaograca.chirp.domain.exception.UserNotFoundException
+import com.joaograca.chirp.domain.exceptions.InvalidTokenException
 import com.joaograca.chirp.domain.model.AuthenticatedUser
 import com.joaograca.chirp.domain.model.User
 import com.joaograca.chirp.domain.type.UserId

@@ -1,8 +1,8 @@
 package com.joaograca.chirp.service
 
 import com.joaograca.chirp.domain.events.user.UserEvent
-import com.joaograca.chirp.domain.exception.InvalidTokenException
 import com.joaograca.chirp.domain.exception.UserNotFoundException
+import com.joaograca.chirp.domain.exceptions.InvalidTokenException
 import com.joaograca.chirp.domain.model.EmailVerificationToken
 import com.joaograca.chirp.infra.database.entities.EmailVerificationTokenEntity
 import com.joaograca.chirp.infra.database.mappers.toEmailVerificationToken
