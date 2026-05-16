@@ -1,8 +1,6 @@
 package com.joaograca.chirp.api.websocket
 
-import com.joaograca.chirp.api.dto.ws.OutgoingWebSocketMessage
-import com.joaograca.chirp.api.dto.ws.OutgoingWebSocketMessageType
-import com.joaograca.chirp.api.dto.ws.SendMessageDto
+import com.joaograca.chirp.api.dto.ws.*
 import com.joaograca.chirp.api.mappers.toChatMessageDto
 import com.joaograca.chirp.domain.type.ChatId
 import com.joaograca.chirp.domain.type.UserId
@@ -16,6 +14,7 @@ import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
+import tools.jackson.core.JacksonException
 import tools.jackson.databind.ObjectMapper
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -77,6 +76,60 @@ class ChatWebSocketHandler(
         }
 
         logger.info("Websocket connection for user $userId")
+    }
+
+    override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
+        logger.debug("Received message ${message.payload}")
+
+        val userSession = connectionLock.read {
+            sessions[session.id]
+        } ?: return
+
+        try {
+            val webSocketMessage = objectMapper.readValue(
+                message.payload,
+                IncomingWebSocketMessage::class.java
+            )
+            when (webSocketMessage.type) {
+                IncomingWebSocketMessageType.NEW_MESSAGE -> {
+                    val dto = objectMapper.readValue(
+                        webSocketMessage.payload,
+                        SendMessageDto::class.java
+                    )
+                    handleSendMessage(
+                        dto = dto,
+                        senderId = userSession.userId
+                    )
+                }
+            }
+        } catch (e: JacksonException) {
+            logger.warn("Could not parse message ${message.payload}", e)
+            sendError(
+                session = userSession.session,
+                error = ErrorDto(
+                    code = "INVALID_JSON",
+                    message = "Incoming JSON or UUID is invalid"
+                )
+            )
+        }
+    }
+
+    private fun sendError(
+        session: WebSocketSession,
+        error: ErrorDto
+    ) {
+        val webSocketMessage = objectMapper.writeValueAsString(
+            OutgoingWebSocketMessage(
+                type = OutgoingWebSocketMessageType.ERROR,
+                payload = objectMapper.writeValueAsString(error)
+            )
+        )
+
+        try {
+            session.sendMessage(TextMessage(webSocketMessage))
+        } catch (e: Exception) {
+            logger.warn("Couldn't send error message", e)
+        }
     }
 
     private fun broadcastToChat(
