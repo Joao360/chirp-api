@@ -87,6 +87,28 @@ class ChatWebSocketHandler(
         logger.info("Websocket connection for user $userId")
     }
 
+    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+        connectionLock.write {
+            sessions.remove(session.id)?.let { userSession ->
+                val userId = userSession.userId
+
+                userToSessions.compute(userId) { _, sessions ->
+                    sessions?.apply { remove(session.id) }
+                        ?.takeIf { it.isNotEmpty() }
+                }
+
+                userChatIds[userId]?.forEach { chatId ->
+                    chatToSessions.compute(chatId) { _, sessions ->
+                        sessions?.apply { remove(session.id) }
+                            ?.takeIf { it.isNotEmpty() }
+                    }
+                }
+
+                logger.info("Websocket session closed for user $userId")
+            }
+        }
+    }
+
     override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
         logger.debug("Received message ${message.payload}")
 
