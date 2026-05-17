@@ -18,3 +18,5 @@ chirp:
   rate-limit:
     ip:
       apply-limit: false
+  web-socket:
+    allowed-origins: "http://chirp.joaograca.com"

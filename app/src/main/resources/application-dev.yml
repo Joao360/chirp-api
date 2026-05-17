@@ -18,3 +18,9 @@ chirp:
   rate-limit:
     ip:
       apply-limit: false
+  web-socket:
+    allowed-origins: "http://localhost:8080"
+
+logging:
+  level:
+    com.joaograca.chirp: DEBUG

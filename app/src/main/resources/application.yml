@@ -74,6 +74,8 @@ jwt:
   expiration-minutes: 15
 
 chirp:
+  web-socket:
+    allowed-origins: "*"
   email:
     from: mail@joaograca.com
     verification:
