@@ -109,6 +109,11 @@ class ChatWebSocketHandler(
         }
     }
 
+    override fun handleTransportError(session: WebSocketSession, exception: Throwable) {
+        logger.error("Transport error for session $session", exception)
+        session.close(CloseStatus.SERVER_ERROR.withReason("Transport error"))
+    }
+
     override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
         logger.debug("Received message ${message.payload}")
 
