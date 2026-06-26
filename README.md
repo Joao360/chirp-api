@@ -4,6 +4,8 @@ This project provides a simple API for interacting with the Chirp messaging plat
 
 ## Set Up
 
+### Environment Variables
+
 This project relies on environment variables for configuration. You need to set the following variables in your
 environment:
 
@@ -12,6 +14,7 @@ environment:
 - JWT_SECRET_BASE64: A base64-encoded secret key for JWT authentication.
 - RABBITMQ_PASSWORD: The password for the RabbitMQ server.
 - MAILGUN_PASSWORD: The password for the Mailgun service.
+- SUPABASE_SERVICE_KEY: The service key for the Supabase project.
 
 Both PostgreSQL and Redis were used through hosted services (Supabase and Redis Cloud respectively).
 

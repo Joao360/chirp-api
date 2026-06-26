@@ -1,0 +1,22 @@
+package com.joaograca.chirp.infra.storage
+
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.client.RestClient
+
+@Configuration
+class SupabaseRestClientConfig(
+    @param:Value("\${chirp.supabase.url}") private val supabaseUrl: String,
+    @Value("\${chirp.supabase.service-key}") private val supabaseServiceKey: String
+) {
+
+    @Bean
+    fun supabaseRestClient(): RestClient {
+        return RestClient.builder()
+            .baseUrl(supabaseUrl)
+            .defaultHeader("Authorization", "Bearer $supabaseServiceKey")
+            .defaultHeader("Content-Type", "application/json")
+            .build()
+    }
+}

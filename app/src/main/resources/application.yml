@@ -90,3 +90,7 @@ nginx:
     - "::1" # nginx running on the same server (IPv6)
     - "172.17.0.0/16" # nginx container IP when using Docker
     - "10.0.0.5/32" # nginx server IP (if separate server)
+
+supabase:
+  url: "aws-1-eu-north-1.pooler.supabase.com"
+  service-key: ${SUPABASE_SERVICE_KEY}
