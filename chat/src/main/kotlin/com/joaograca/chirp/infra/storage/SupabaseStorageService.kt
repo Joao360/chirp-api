@@ -50,6 +50,27 @@ class SupabaseStorageService(
         return response.url
     }
 
+    fun deleteFile(url: String) {
+        val supabasePathPrefix = "object/public/"
+        val path = if (url.contains(supabasePathPrefix)) {
+            url.substringAfter(supabasePathPrefix)
+        } else {
+            throw StorageException("Invalid URL")
+        }
+
+        val deleteUrl = "/storage/v1/object/$path"
+
+        val response = supabaseRestClient
+            .delete()
+            .uri(deleteUrl)
+            .retrieve()
+            .toBodilessEntity()
+
+        if (response.statusCode.isError) {
+            throw StorageException("Failed to delete file: ${response.statusCode.value()}")
+        }
+    }
+
     private data class SignedUploadResponse(
         val url: String
     )
