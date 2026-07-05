@@ -7,8 +7,8 @@ import org.springframework.web.client.RestClient
 
 @Configuration
 class SupabaseRestClientConfig(
-    @param:Value("\${chirp.supabase.url}") private val supabaseUrl: String,
-    @Value("\${chirp.supabase.service-key}") private val supabaseServiceKey: String
+    @param:Value("\${supabase.url}") private val supabaseUrl: String,
+    @Value("\${supabase.service-key}") private val supabaseServiceKey: String
 ) {
 
     @Bean

@@ -12,7 +12,7 @@ import java.util.*
 
 @Service
 class SupabaseStorageService(
-    @param:Value("\${chirp.supabase.url}") private val supabaseUrl: String,
+    @param:Value("\${supabase.url}") private val supabaseUrl: String,
     private val supabaseRestClient: RestClient
 ) {
 
