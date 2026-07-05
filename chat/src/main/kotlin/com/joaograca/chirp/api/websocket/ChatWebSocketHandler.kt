@@ -5,6 +5,7 @@ import com.joaograca.chirp.api.mappers.toChatMessageDto
 import com.joaograca.chirp.domain.event.ChatParticipantLeftEvent
 import com.joaograca.chirp.domain.event.ChatParticipantsJoinedEvent
 import com.joaograca.chirp.domain.event.MessageDeletedEvent
+import com.joaograca.chirp.domain.event.ProfilePictureUpdatedEvent
 import com.joaograca.chirp.domain.type.ChatId
 import com.joaograca.chirp.domain.type.UserId
 import com.joaograca.chirp.service.ChatMessageService
@@ -31,7 +32,7 @@ class ChatWebSocketHandler(
     private val objectMapper: ObjectMapper,
     private val chatService: ChatService,
     private val jwtService: JwtService,
-): TextWebSocketHandler() {
+) : TextWebSocketHandler() {
 
     companion object {
         private const val PING_INTERVAL_MS = 30_000L
@@ -176,7 +177,7 @@ class ChatWebSocketHandler(
 
                 userToSessions[userId]?.forEach { sessionId ->
                     chatToSessions.compute(event.chatId) { _, sessions ->
-                        (sessions ?: mutableSetOf()).apply { add(sessionId)}
+                        (sessions ?: mutableSetOf()).apply { add(sessionId) }
                     }
                 }
             }
@@ -191,6 +192,45 @@ class ChatWebSocketHandler(
                 )
             )
         )
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun onProfilePictureUpdated(event: ProfilePictureUpdatedEvent) {
+        val chatIds = connectionLock.read {
+            userChatIds[event.userId]?.toList() ?: emptyList()
+        }
+
+        val sessionIds = mutableListOf<String>()
+        connectionLock.read {
+            chatIds.forEach { chatId ->
+                chatToSessions[chatId]?.let { sessionIds.addAll(it) }
+            }
+        }
+
+        val dto = ProfilePictureUpdateDto(
+            userId = event.userId,
+            newUrl = event.newUrl,
+        )
+
+        val webSocketMessage = OutgoingWebSocketMessage(
+            type = OutgoingWebSocketMessageType.PROFILE_PICTURE_UPDATED,
+            payload = objectMapper.writeValueAsString(dto)
+        )
+
+        val json = objectMapper.writeValueAsString(webSocketMessage)
+
+        sessionIds.forEach { sessionId ->
+            val session = connectionLock.read {
+                sessions[sessionId]
+            } ?: return@forEach
+            if (session.session.isOpen) {
+                try {
+                    session.session.sendMessage(TextMessage(json))
+                } catch (e: Exception) {
+                    logger.error("Error while sending profile picture update to session $sessionId", e)
+                }
+            }
+        }
     }
 
     override fun handlePongMessage(session: WebSocketSession, message: PongMessage) {
@@ -228,7 +268,7 @@ class ChatWebSocketHandler(
                 logger.error("Could not ping session $sessionId", e)
                 sessionsToClose.add(sessionId)
             }
-         }
+        }
 
         sessionsToClose.forEach { sessionId ->
             connectionLock.read {
