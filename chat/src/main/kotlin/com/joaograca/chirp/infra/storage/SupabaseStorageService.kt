@@ -21,33 +21,35 @@ class SupabaseStorageService(
             ?: throw InvalidProfilePictureException("Invalid file type: $mimeType")
 
         val fileName = "user_${userId}_${UUID.randomUUID()}.$fileExtension"
-        val bucketName = "profile-pictures"
-        val path = "$bucketName/$fileName"
+        val objectPath = "$SUPABASE_BUCKET_NAME/$fileName"
 
-        val publicUrl = "$supabaseUrl/storage/v1/object/public/$path"
+        val publicUrl = "$supabaseUrl/${SUPABASE_STORAGE_PATH}/public/$objectPath"
 
         return ProfilePictureCredentials(
-            uploadUrl = createSignedUploadUrl(path = path, expiresInSeconds = UPLOAD_EXPIRATION_TIME_SECONDS),
+            uploadUrl = createSignedUploadUrl(objectPath = objectPath),
             publicUrl = publicUrl,
             headers = mapOf("Content-Type" to mimeType),
             expiresAt = Instant.now().plusSeconds(UPLOAD_EXPIRATION_TIME_SECONDS)
         )
     }
 
-    private fun createSignedUploadUrl(path: String, expiresInSeconds: Long): String {
+    private fun createSignedUploadUrl(
+        objectPath: String,
+    ): String {
         val json = """
-            { "expiresIn": $expiresInSeconds }
+            { "expiresIn": $UPLOAD_EXPIRATION_TIME_SECONDS }
         """.trimIndent()
 
         val response = supabaseRestClient
             .post()
-            .uri("/storage/v1/object/upload/sign/$path")
+            .uri("/$SUPABASE_STORAGE_PATH/upload/sign/$objectPath")
+            .header("Content-Type", "application/json")
             .body(json)
             .retrieve()
             .body(SignedUploadResponse::class.java)
             ?: throw StorageException("Failed to create signed URL")
 
-        return response.url
+        return "$supabaseUrl/storage/v1${response.url}"
     }
 
     fun deleteFile(url: String) {
@@ -58,7 +60,7 @@ class SupabaseStorageService(
             throw StorageException("Invalid URL")
         }
 
-        val deleteUrl = "/storage/v1/object/$path"
+        val deleteUrl = "/$SUPABASE_STORAGE_PATH/$path"
 
         val response = supabaseRestClient
             .delete()
@@ -84,5 +86,8 @@ class SupabaseStorageService(
         )
 
         private const val UPLOAD_EXPIRATION_TIME_SECONDS = 300L // 5 minutes
+
+        private const val SUPABASE_STORAGE_PATH = "storage/v1/object"
+        private const val SUPABASE_BUCKET_NAME = "profile-pictures"
     }
 }

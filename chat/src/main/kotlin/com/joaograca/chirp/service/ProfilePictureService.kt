@@ -52,7 +52,7 @@ class ProfilePictureService(
 
     @Transactional
     fun confirmProfilePictureUpload(userId: UserId, newUrl: String) {
-        if (!newUrl.startsWith("https://$supabaseUrl")) {
+        if (!newUrl.startsWith(supabaseUrl)) {
             throw IllegalArgumentException("Invalid profile picture url")
         }
 
