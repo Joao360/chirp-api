@@ -7,6 +7,7 @@ import com.joaograca.chirp.domain.type.UserId
 import com.joaograca.chirp.infra.database.repositories.ChatParticipantRepository
 import com.joaograca.chirp.infra.storage.SupabaseStorageService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -16,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional
 class ProfilePictureService(
     private val supabaseStorageService: SupabaseStorageService,
     private val chatParticipantRepository: ChatParticipantRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    @param:Value("\${supabase.url}") private val supabaseUrl: String,
 ) {
     private val logger = LoggerFactory.getLogger(ProfilePictureService::class.java)
 
@@ -50,6 +52,10 @@ class ProfilePictureService(
 
     @Transactional
     fun confirmProfilePictureUpload(userId: UserId, newUrl: String) {
+        if (!newUrl.startsWith("https://$supabaseUrl")) {
+            throw IllegalArgumentException("Invalid profile picture url")
+        }
+
         val chatParticipant = chatParticipantRepository.findByIdOrNull(userId)
             ?: throw ChatParticipantNotFoundException(userId)
 
